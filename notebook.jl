@@ -24,6 +24,10 @@ using Plots
 
 # ╔═╡ 583aa664-5abe-11ed-2377-67f9156b65c0
 md"""
+# Main title
+
+**Petr Váňa**, Jindřiška Deckerová
+
 ## Introduction and installation
 
 Fist, please download the repository:
@@ -31,11 +35,9 @@ Fist, please download the repository:
 ### Clone [github.com/petvana/OptimizationPAIR22.jl](https://github.com/petvana/OptimizationPAIR22.jl)
 
 The repository contains the following:
- - xxx
- - xxx
-   - xxx
-
-$x = \infty$
+ - `notebook.jl` - This notebook
+ - `install-Julia-on-Ubuntu.sh` - Install Julia on Ubuntu
+ - `install-packages.jl` - Install Julia packages to be able to run this notebook offline
 
 """
 
@@ -90,13 +92,53 @@ Finally, please open this notebook (`notebook.jl`).
 
 """
 
-# ╔═╡ 6b1fa9e9-97f7-4b3c-aaba-818a0f0c5254
+# ╔═╡ 5db20541-b127-49ef-8c5e-d25fcd0ce091
 md"""
 ## Using JuMP for Optimization
+
+
+
+"""
+
+# ╔═╡ 0e972eb1-503f-4eea-ad0f-cc7d6c39297e
+md"""
+### ILP - Integer Linear Programming
+
+General **ILP** formulation from [Wikipedia](https://en.wikipedia.org/wiki/Integer_programming)
+
+$\begin{align}
+& \text{maximize}   && \mathbf{c}^\mathrm{T} \mathbf{x}\\
+& \text{subject to} && A \mathbf{x} \le \mathbf{b}, \\
+&  && \mathbf{x} \ge \mathbf{0}, \\
+& \text{and} && \mathbf{x} \in \mathbb{Z}^n,
+\end{align}$
+
+#### Concrete ILP example
+
+$\begin{align}
+  \max  & \text{ } y \\
+		-x +y & \leq 1  \\
+		3x +2y & \leq 12 \\
+		2x +3y & \leq 12 \\
+		x,y & \ge 0 \\
+		x,y & \in \mathbb{Z}
+\end{align}$
+
+"""
+
+# ╔═╡ 7e0e7130-75c0-48ea-b589-f18f9e3f6e40
+html"""
+<center>
+<img src="https://upload.wikimedia.org/wikipedia/commons/0/06/IP_polytope_with_LP_relaxation.svg" width="400">
+"""
+
+# ╔═╡ 809f7103-2fe4-49bc-ac25-f9dece94f707
+md"""
+### Solve using Linear Programming
 """
 
 # ╔═╡ 4e3e0276-d270-417a-86cc-2b441ea852cb
-let
+LP_solution = let
 	model = Model(GLPK.Optimizer)
 	@variable(model, x >= 0)
 	@variable(model, y >= 0)
@@ -106,11 +148,7 @@ let
 	@objective(model, Min, 12x + 20y)
 	
 	optimize!(model)
-	
-	@show value(x)
-	@show value(y)
-	@show objective_value(model)
-	nothing
+	(value.((x,y)), objective_value(model))
 end
 
 # ╔═╡ 8d21bfc1-e273-4f33-bddd-db32cbf5f7b2
@@ -145,7 +183,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "ccb26ad1f6d75946305fa8f91bc22c8e58bf7049"
+project_hash = "5aedf54bc1c20100d99557901a746f182721be2e"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1154,7 +1192,10 @@ version = "1.4.1+0"
 # ╟─583aa664-5abe-11ed-2377-67f9156b65c0
 # ╟─d00c5f9b-037c-4d46-9a94-d464b9df2107
 # ╟─58d29c81-a218-411e-b97d-6eb283d7858c
-# ╟─6b1fa9e9-97f7-4b3c-aaba-818a0f0c5254
+# ╟─5db20541-b127-49ef-8c5e-d25fcd0ce091
+# ╟─0e972eb1-503f-4eea-ad0f-cc7d6c39297e
+# ╟─7e0e7130-75c0-48ea-b589-f18f9e3f6e40
+# ╟─809f7103-2fe4-49bc-ac25-f9dece94f707
 # ╠═f37a9223-919d-4b1f-8706-1035209b8d08
 # ╠═4e3e0276-d270-417a-86cc-2b441ea852cb
 # ╠═06092a83-8e88-4761-90b8-e5d1133186b9
