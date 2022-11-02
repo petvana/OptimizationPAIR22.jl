@@ -14,13 +14,17 @@ macro bind(def, element)
     end
 end
 
+# ╔═╡ f37a9223-919d-4b1f-8706-1035209b8d08
+# Load packages
+using JuMP, GLPK
+
 # ╔═╡ 06092a83-8e88-4761-90b8-e5d1133186b9
 # Load packages
 using Plots
 
 # ╔═╡ 583aa664-5abe-11ed-2377-67f9156b65c0
 md"""
-# Introduction and installation
+## Introduction and installation
 
 Fist, please download the repository:
 
@@ -33,15 +37,81 @@ The repository contains the following:
 
 $x = \infty$
 
+"""
+
+# ╔═╡ d00c5f9b-037c-4d46-9a94-d464b9df2107
+md"""
 ## Install Julia
 
-Please instal Julia v1.8.2 from [julialang.org/downloads](https://julialang.org/downloads/), or you can use script `install-Ubuntu.sh` on Ubuntu. The scripts downloads and extract the Julia. Also, it creates a symlink to `~/.local/bin/julia`. If you cannot run Julia, please restart the terminal (not whole OS).
+Please instal Julia v1.8.2 from [julialang.org/downloads](https://julialang.org/downloads/), or you can use script the following script on Ubuntu.
 
-## Install Pluto - interactive notebooks
+```
+install-Ubuntu.sh
+```
 
+The scripts downloads and extract the Julia. Also, it creates a symlink to `~/.local/bin/julia`. If you cannot run Julia, please restart the terminal (not whole OS).
+"""
 
+# ╔═╡ 58d29c81-a218-411e-b97d-6eb283d7858c
+md"""
+## Pluto - interactive notebooks
+
+Please run Julia in your favorite terminal.
+```bash
+[DIR]/OptimizationPAIR22.jl$ julia
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Type "?" for help, "]?" for Pkg help.
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Version 1.8.2 (2022-09-29)
+ _/ |\__'_|_|_|\__'_|  |  Official https://julialang.org/ release
+|__/                   |
+```
+Then import Pluto and run it.
+```julia
+julia> using Pluto
+
+julia> Pluto.run()
+[ Info: Loading...
+```
+
+If you would like to install `Pluto.jl` outside the notebook you write
+```
+] add Pluto
+```
+
+Finally, please open this notebook (`notebook.jl`).
+
+##### To run a cell, you can either:
+ - Press **Shift+Enter** (to run the current cell).
+ - Press **Ctrl+Enter** (to run the current cell and add a new cell just below it).
+ - Click on the arrow_forward button present at the bottom right corner of the cell.
 
 """
+
+# ╔═╡ 6b1fa9e9-97f7-4b3c-aaba-818a0f0c5254
+md"""
+## Using JuMP for Optimization
+"""
+
+# ╔═╡ 4e3e0276-d270-417a-86cc-2b441ea852cb
+let
+	model = Model(GLPK.Optimizer)
+	@variable(model, x >= 0)
+	@variable(model, y >= 0)
+	
+	@constraint(model, 6x + 8y >= 100)
+	@constraint(model, 7x + 12y >= 120)
+	@objective(model, Min, 12x + 20y)
+	
+	optimize!(model)
+	
+	@show value(x)
+	@show value(y)
+	@show objective_value(model)
+	nothing
+end
 
 # ╔═╡ 8d21bfc1-e273-4f33-bddd-db32cbf5f7b2
 let
@@ -59,9 +129,13 @@ x
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+GLPK = "~1.1.0"
+JuMP = "~1.4.0"
 Plots = "~1.35.7"
 """
 
@@ -71,7 +145,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "39d0d5866236472d6bc1a58c4e663ea8a2a2e057"
+project_hash = "ccb26ad1f6d75946305fa8f91bc22c8e58bf7049"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -82,6 +156,12 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "4c10eee4af024676200bc7752e536f858c6b8f93"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.3.1"
 
 [[deps.BitFlags]]
 git-tree-sha1 = "84259bb6172806304b9101094a7cc4bc6f56dbc6"
@@ -112,6 +192,12 @@ git-tree-sha1 = "38f7a08f19d8810338d4f5085211c7dfa5d5bdd8"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.4"
 
+[[deps.CodecBzip2]]
+deps = ["Bzip2_jll", "Libdl", "TranscodingStreams"]
+git-tree-sha1 = "2e62a725210ce3c3c2e1a3080190e7ca491f18d7"
+uuid = "523fee87-0ab8-5b00-afb7-3ecf72e48cfd"
+version = "0.7.2"
+
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
 git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
@@ -141,6 +227,12 @@ deps = ["ColorTypes", "FixedPointNumbers", "Reexport"]
 git-tree-sha1 = "417b0ed7b8b838aa6ca0a87aadf1bb9eb111ce40"
 uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.8"
+
+[[deps.CommonSubexpressions]]
+deps = ["MacroTools", "Test"]
+git-tree-sha1 = "7b8a93dba8af7e3b42fecabf646260105ac373f7"
+uuid = "bbf7d656-a473-5ed7-a52c-81e309532950"
+version = "0.3.0"
 
 [[deps.Compat]]
 deps = ["Dates", "LinearAlgebra", "UUIDs"]
@@ -176,6 +268,18 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 [[deps.DelimitedFiles]]
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+
+[[deps.DiffResults]]
+deps = ["StaticArraysCore"]
+git-tree-sha1 = "782dd5f4561f5d267313f23853baaaa4c52ea621"
+uuid = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
+version = "1.1.0"
+
+[[deps.DiffRules]]
+deps = ["IrrationalConstants", "LogExpFunctions", "NaNMath", "Random", "SpecialFunctions"]
+git-tree-sha1 = "8b7a4d23e22f5d44883671da70865ca98f2ebf9d"
+uuid = "b552c78f-8df3-52c6-915a-8e097449b14b"
+version = "1.12.0"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -227,6 +331,12 @@ git-tree-sha1 = "8339d61043228fdd3eb658d86c926cb282ae72a8"
 uuid = "59287772-0a20-5a39-b81b-1366585eb4c0"
 version = "0.4.2"
 
+[[deps.ForwardDiff]]
+deps = ["CommonSubexpressions", "DiffResults", "DiffRules", "LinearAlgebra", "LogExpFunctions", "NaNMath", "Preferences", "Printf", "Random", "SpecialFunctions", "StaticArrays"]
+git-tree-sha1 = "187198a4ed8ccd7b5d99c41b69c679269ea2b2d4"
+uuid = "f6369f11-7733-5829-9624-2563aa707210"
+version = "0.10.32"
+
 [[deps.FreeType2_jll]]
 deps = ["Artifacts", "Bzip2_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
 git-tree-sha1 = "87eb71354d8ec1a96d4a7636bd57a7347dde3ef9"
@@ -244,6 +354,23 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Libglvnd_jll", "Pkg", "Xorg_libXcu
 git-tree-sha1 = "d972031d28c8c8d9d7b41a536ad7bb0c2579caca"
 uuid = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
 version = "3.3.8+0"
+
+[[deps.GLPK]]
+deps = ["GLPK_jll", "MathOptInterface"]
+git-tree-sha1 = "e357b935632e89a02cf7f8f13b4f3f59cef479c8"
+uuid = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
+version = "1.1.0"
+
+[[deps.GLPK_jll]]
+deps = ["Artifacts", "GMP_jll", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "fe68622f32828aa92275895fdb324a85894a5b1b"
+uuid = "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98"
+version = "5.0.1+0"
+
+[[deps.GMP_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "781609d7-10c4-51f6-84f2-b8444358ff6d"
+version = "6.2.1+2"
 
 [[deps.GR]]
 deps = ["Base64", "DelimitedFiles", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Preferences", "Printf", "Random", "Serialization", "Sockets", "Test", "UUIDs"]
@@ -335,6 +462,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "b53380851c6e6664204efb2e62cd24fa5c47e4ba"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "2.1.2+0"
+
+[[deps.JuMP]]
+deps = ["LinearAlgebra", "MathOptInterface", "MutableArithmetics", "OrderedCollections", "Printf", "SparseArrays"]
+git-tree-sha1 = "9a57156b97ed7821493c9c0a65f5b72710b38cf7"
+uuid = "4076af6c-e467-56ae-b986-b466b2749572"
+version = "1.4.0"
 
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -464,6 +597,12 @@ version = "0.5.10"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
+[[deps.MathOptInterface]]
+deps = ["BenchmarkTools", "CodecBzip2", "CodecZlib", "DataStructures", "ForwardDiff", "JSON", "LinearAlgebra", "MutableArithmetics", "NaNMath", "OrderedCollections", "Printf", "SparseArrays", "SpecialFunctions", "Test", "Unicode"]
+git-tree-sha1 = "ceed48edffe0325a6e9ea00ecf3607af5089c413"
+uuid = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
+version = "1.9.0"
+
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
 git-tree-sha1 = "03a9b9718f5682ecb107ac9f7308991db4ce395b"
@@ -492,6 +631,12 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
+
+[[deps.MutableArithmetics]]
+deps = ["LinearAlgebra", "SparseArrays", "Test"]
+git-tree-sha1 = "1d57a7dc42d563ad6b5e95d7a8aebd550e5162c0"
+uuid = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
+version = "1.0.5"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
@@ -603,6 +748,10 @@ version = "1.3.0"
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
+[[deps.Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
 git-tree-sha1 = "c6c0f690d0cc7caddb74cef7aa847b824a16b256"
@@ -693,6 +842,17 @@ deps = ["ChainRulesCore", "IrrationalConstants", "LogExpFunctions", "OpenLibm_jl
 git-tree-sha1 = "d75bda01f8c31ebb72df80a46c88b25d1c79c56d"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
 version = "2.1.7"
+
+[[deps.StaticArrays]]
+deps = ["LinearAlgebra", "Random", "StaticArraysCore", "Statistics"]
+git-tree-sha1 = "f86b3a049e5d05227b10e15dbb315c5b90f14988"
+uuid = "90137ffa-7385-5640-81b9-e52037218182"
+version = "1.5.9"
+
+[[deps.StaticArraysCore]]
+git-tree-sha1 = "6b7ba252635a5eff6a0b0664a41ee140a1c9e72a"
+uuid = "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+version = "1.4.0"
 
 [[deps.Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -992,6 +1152,11 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╟─583aa664-5abe-11ed-2377-67f9156b65c0
+# ╟─d00c5f9b-037c-4d46-9a94-d464b9df2107
+# ╟─58d29c81-a218-411e-b97d-6eb283d7858c
+# ╟─6b1fa9e9-97f7-4b3c-aaba-818a0f0c5254
+# ╠═f37a9223-919d-4b1f-8706-1035209b8d08
+# ╠═4e3e0276-d270-417a-86cc-2b441ea852cb
 # ╠═06092a83-8e88-4761-90b8-e5d1133186b9
 # ╠═8d21bfc1-e273-4f33-bddd-db32cbf5f7b2
 # ╠═e3b89fb4-98e0-4433-b0bb-cfb48ef5f706
