@@ -7,6 +7,9 @@ using InteractiveUtils
 # ╔═╡ 0ee8750d-d8a6-49b2-9627-6d0420bee6b1
 using Clarabel, JuMP, Plots
 
+# ╔═╡ ef04b988-7806-4615-85d8-fbc828580a14
+md"## Point-Circle-Point problem"
+
 # ╔═╡ 48320132-5b76-11ed-00e2-a73231c40ca6
 let
 	model = JuMP.Model(Clarabel.Optimizer)
@@ -1175,6 +1178,7 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
+# ╟─ef04b988-7806-4615-85d8-fbc828580a14
 # ╠═0ee8750d-d8a6-49b2-9627-6d0420bee6b1
 # ╠═48320132-5b76-11ed-00e2-a73231c40ca6
 # ╠═8a96a71f-5638-4d00-9bf0-30bb098642d9

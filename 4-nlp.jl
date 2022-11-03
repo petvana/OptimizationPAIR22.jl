@@ -4,84 +4,89 @@
 using Markdown
 using InteractiveUtils
 
-# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
-macro bind(def, element)
-    quote
-        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
-        local el = $(esc(element))
-        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
-        el
-    end
-end
+# ╔═╡ e3fb67a4-09ca-4d8a-a974-75f92ccf5b82
+using JuMP, Ipopt, Plots
 
-# ╔═╡ 2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
-using Plots, IntervalArithmetic, IntervalConstraintProgramming
+# ╔═╡ 314a4ab6-5b7f-11ed-39f1-cddfcf4720be
+md"## Non-linear programming"
 
-# ╔═╡ 9c0d7e20-d976-41c3-bce0-b35e92b80bf2
-md"""
-## Interval arithmetics and constrained programming
+# ╔═╡ 2b88f724-4bf9-4504-a951-2f83bce72a16
+md"### Example with 2D Dubins vehicle"
 
-[juliaintervals.github.io/pages/tutorials/tutorialConstraintProgramming](https://juliaintervals.github.io/pages/tutorials/tutorialConstraintProgramming/)
-"""
-
-# ╔═╡ 494252a0-eedc-4f1b-9446-3fcac9c42211
-x = 0.5..0.6
-
-# ╔═╡ 54c26009-0379-4297-b19a-4d4ab596cf09
-sin(x)
-
-# ╔═╡ 4f53eed0-e1fc-4f47-a60b-a05835f54a01
+# ╔═╡ 8f67d603-258f-47c3-8054-289e09ac1598
 let
-	f(x) = sin(x) + 0.1 * x^2
+	q1 = [0.,0.,-1.4]
+	q2 = [10.,100.,1.2]
+
+	start_dir = [cos(q1[3]), sin(q1[3])]
+	end_dir = [cos(q2[3]), sin(q2[3])]
+
+	model = Model(Ipopt.Optimizer)
+
+	# Number of controll points
+	N = 50
+
+	@variable(model, dir[1:N, 1:2])
+	@variable(model, step >= 0)
+	#@constraint(model, A*x .<= b)
+
+	@constraint(model, dir[1,1:2] .== start_dir)
+	@constraint(model, dir[end,1:2] .== end_dir)
+
+	for i in 1:N
+		@NLconstraint(model, dir[i,1]^2 + dir[i,2]^2 == 1)
+	end
+
+	@constraint(model, step/2 * sum(dir[i,1] + dir[i+1,1] for i in 1:N-1) == q2[1] - q1[1])
+	@constraint(model, step/2 * sum(dir[i,2] + dir[i+1,2] for i in 1:N-1) == q2[2] - q1[2])
+
+	for i in 1:N-1
+		# TODO: use trigonometric function considering step
+		@NLconstraint(model, sum(dir[i, j] * dir[i+1,j] for j in 1:2) >= 0.97)
+	end
 	
-	x = 0:0.1:2pi
-	y = f.(x)
-	plot(x,y)
-	
-	xi = mince(0..2pi, 40)
-	yi = f.(xi)
-	boxes = [IntervalBox(p) for p in zip(xi, yi)]
-	plot!(boxes, label = "Intervals")
+	@objective(model, Min, step)
+
+	optimize!(model)
+
+	@show dir_vals = value.(dir)
+	@show step_val = value.(step)
+
+	function point(i)
+		ret = q1[1:2]
+		for j in 1:i
+			ret += step_val * (dir_vals[j, :] + dir_vals[j+1, :]) / 2
+		end
+		return ret
+	end
+	@show points = [point(i-1) for i in 1:N]
+
+	plot() # New plot
+	x = []; y = []
+	for i in 1:N
+		push!(x, points[i][1])
+		push!(y, points[i][2])
+	end
+	plot!(x, y, seriestype = :scatter, label = nothing, aspect_ratio=:equal)
 end
 
-# ╔═╡ e7d17f2f-b85a-4733-bec7-385a480802d8
-md"""
-Show usage for 
-
-[juliaintervals.github.io/pages/tutorials/tutorialTaylorModels](https://juliaintervals.github.io/pages/tutorials/tutorialTaylorModels/)
-"""
-
-# ╔═╡ 1eb6b3ab-fe93-487c-a8c2-41b46067a57b
-@bind pave_tolerance_sqrt html"<input type=range min=0.1 max=0.99 value=0.5 step=0.01>"
-
-# ╔═╡ 02639593-176b-45c5-8eaf-c6748e435ebf
-pave_tolerance = pave_tolerance_sqrt^2
-
-# ╔═╡ 37521a9d-4ed5-4b05-b868-71542cd36880
-let
-	S = IntervalConstraintProgramming.@constraint 1 <= x^6 + y^2 + 1.5x <= 2
-	#S = IntervalConstraintProgramming.@constraint 1 <= x^2 + y^2 <= 3
-	X = IntervalBox(-100..100, 2) # our starting box
-	paving = pave(S, X, pave_tolerance)
-	plot(paving.inner, c="green", aspect_ratio=:equal, label="inner")
-	plot!(paving.boundary, c="gray", label="boundary")
-end
-
-# ╔═╡ 38479048-510d-4d46-b71e-54bcbe57f1e5
-md"""
-https://opensourc.es/blog/mip-tsp/
-"""
+# ╔═╡ 68eeea85-c86a-4f02-9919-3b96da236b09
+html"""<style>
+main {
+    max-width: 1100px;
+}
+</style>"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
-IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
-IntervalConstraintProgramming = "138f1668-1576-5ad7-91b9-7425abbf3153"
+Ipopt = "b6b21f68-93f8-5de0-b562-5493be1d77c9"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
-IntervalArithmetic = "~0.17.8"
-IntervalConstraintProgramming = "~0.9.1"
+Ipopt = "~1.1.0"
+JuMP = "~1.4.0"
 Plots = "~1.35.7"
 """
 
@@ -91,7 +96,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "97031121c72e113bede8124936b41b94d19f5e50"
+project_hash = "460b0ddfdcc1005bb7ab3c23367ba5d78637eb41"
+
+[[deps.ASL_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "6252039f98492252f9e47c312c8ffda0e3b9e78d"
+uuid = "ae81ac8f-d209-56e5-92de-9978fef736f9"
+version = "0.1.3+0"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -103,6 +114,12 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "4c10eee4af024676200bc7752e536f858c6b8f93"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.3.1"
+
 [[deps.BitFlags]]
 git-tree-sha1 = "84259bb6172806304b9101094a7cc4bc6f56dbc6"
 uuid = "d1d4a3ce-64b1-5f1a-9ba4-7e7e69966f35"
@@ -113,12 +130,6 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
 uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
 version = "1.0.8+0"
-
-[[deps.CRlibm]]
-deps = ["Libdl"]
-git-tree-sha1 = "9d1c22cff9c04207f336b8e64840d0bd40d86e0e"
-uuid = "96374032-68de-5a5b-8d9e-752f78720389"
-version = "0.8.0"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -137,6 +148,12 @@ deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
 git-tree-sha1 = "38f7a08f19d8810338d4f5085211c7dfa5d5bdd8"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.4"
+
+[[deps.CodecBzip2]]
+deps = ["Bzip2_jll", "Libdl", "TranscodingStreams"]
+git-tree-sha1 = "2e62a725210ce3c3c2e1a3080190e7ca491f18d7"
+uuid = "523fee87-0ab8-5b00-afb7-3ecf72e48cfd"
+version = "0.7.2"
 
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -232,21 +249,11 @@ deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.6.0"
 
-[[deps.ErrorfreeArithmetic]]
-git-tree-sha1 = "d6863c556f1142a061532e79f611aa46be201686"
-uuid = "90fa49ef-747e-5e6f-a989-263ba693cf1a"
-version = "0.5.2"
-
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "bad72f730e9e91c08d9427d5e8db95478a3c323d"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
 version = "2.4.8+0"
-
-[[deps.ExprTools]]
-git-tree-sha1 = "56559bbef6ca5ea0c0818fa5c90320398a6fbf8d"
-uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
-version = "0.1.8"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -259,12 +266,6 @@ deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers",
 git-tree-sha1 = "74faea50c1d007c85837327f6775bea60b5492dd"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
 version = "4.4.2+2"
-
-[[deps.FastRounding]]
-deps = ["ErrorfreeArithmetic", "Test"]
-git-tree-sha1 = "224175e213fd4fe112db3eea05d66b308dc2bf6b"
-uuid = "fa42c844-2597-5d31-933b-ebd51ab2693f"
-version = "0.2.0"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -363,51 +364,27 @@ git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
 uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
 version = "0.5.1"
 
-[[deps.InlineStrings]]
-deps = ["Parsers"]
-git-tree-sha1 = "a62189e59d33e1615feb7a48c0bea7c11e4dc61d"
-uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
-version = "1.3.0"
-
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
-
-[[deps.IntervalArithmetic]]
-deps = ["CRlibm", "FastRounding", "LinearAlgebra", "Markdown", "Random", "RecipesBase", "RoundingEmulator", "SetRounding", "StaticArrays"]
-git-tree-sha1 = "00cce14aeb4b256f2f57caf3f3b9354c27d93259"
-uuid = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
-version = "0.17.8"
-
-[[deps.IntervalConstraintProgramming]]
-deps = ["IntervalArithmetic", "IntervalContractors", "IntervalRootFinding", "MacroTools", "Test"]
-git-tree-sha1 = "e5234b7d91eaaa80305cd8e74a5f2231d4d0e05e"
-uuid = "138f1668-1576-5ad7-91b9-7425abbf3153"
-version = "0.9.1"
-
-[[deps.IntervalContractors]]
-deps = ["IntervalArithmetic"]
-git-tree-sha1 = "ae2dc7466d668c8402d5635c3345efc5f65e0a0d"
-uuid = "15111844-de3b-5229-b4ba-526f2f385dc9"
-version = "0.4.7"
-
-[[deps.IntervalRootFinding]]
-deps = ["ForwardDiff", "IntervalArithmetic", "LinearAlgebra", "Polynomials", "Reexport", "StaticArrays"]
-git-tree-sha1 = "b6969692c800cc5b90608fbd3be83189edc5e446"
-uuid = "d2bf35a9-74e0-55ec-b149-d360ff49b807"
-version = "0.5.10"
-
-[[deps.Intervals]]
-deps = ["Dates", "Printf", "RecipesBase", "Serialization", "TimeZones"]
-git-tree-sha1 = "f3c7f871d642d244e7a27e3fb81e8441e13230d8"
-uuid = "d8418881-c3e1-53bb-8760-2df7ec849ed5"
-version = "1.8.0"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
 git-tree-sha1 = "49510dfcb407e572524ba94aeae2fced1f3feb0f"
 uuid = "3587e190-3f89-42d0-90ee-14403ec27112"
 version = "0.1.8"
+
+[[deps.Ipopt]]
+deps = ["Ipopt_jll", "MathOptInterface"]
+git-tree-sha1 = "14a305ededd75330246aaa0380130561d8924120"
+uuid = "b6b21f68-93f8-5de0-b562-5493be1d77c9"
+version = "1.1.0"
+
+[[deps.Ipopt_jll]]
+deps = ["ASL_jll", "Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "MUMPS_seq_jll", "OpenBLAS32_jll", "Pkg"]
+git-tree-sha1 = "e3e202237d93f18856b6ff1016166b0f172a49a8"
+uuid = "9cc047cb-c261-5740-88fc-0cf96f7bdcc7"
+version = "300.1400.400+0"
 
 [[deps.IrrationalConstants]]
 git-tree-sha1 = "7fd44fd4ff43fc60815f8e764c0f352b83c49151"
@@ -438,6 +415,12 @@ git-tree-sha1 = "b53380851c6e6664204efb2e62cd24fa5c47e4ba"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "2.1.2+0"
 
+[[deps.JuMP]]
+deps = ["LinearAlgebra", "MathOptInterface", "MutableArithmetics", "OrderedCollections", "Printf", "SparseArrays"]
+git-tree-sha1 = "9a57156b97ed7821493c9c0a65f5b72710b38cf7"
+uuid = "4076af6c-e467-56ae-b986-b466b2749572"
+version = "1.4.0"
+
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "f6250b16881adf048549549fba48b1161acdac8c"
@@ -466,10 +449,6 @@ deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdow
 git-tree-sha1 = "ab9aa169d2160129beb241cb2750ca499b4e90e9"
 uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 version = "0.15.17"
-
-[[deps.LazyArtifacts]]
-deps = ["Artifacts", "Pkg"]
-uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -560,6 +539,18 @@ git-tree-sha1 = "5d4d2d9904227b8bd66386c1138cf4d5ffa826bf"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "0.4.9"
 
+[[deps.METIS_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "1d31872bb9c5e7ec1f618e8c4a56c8b0d9bddc7e"
+uuid = "d00139f3-1899-568f-a2f0-47f597d42d70"
+version = "5.1.1+0"
+
+[[deps.MUMPS_seq_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "METIS_jll", "OpenBLAS32_jll", "Pkg"]
+git-tree-sha1 = "29de2841fa5aefe615dea179fcde48bb87b58f57"
+uuid = "d7ed1dd3-d0ae-5e8e-bfb4-87a502085b8d"
+version = "5.4.1+0"
+
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "42324d08725e200c23d4dfb549e0d5d89dede2d2"
@@ -569,6 +560,12 @@ version = "0.5.10"
 [[deps.Markdown]]
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
+
+[[deps.MathOptInterface]]
+deps = ["BenchmarkTools", "CodecBzip2", "CodecZlib", "DataStructures", "ForwardDiff", "JSON", "LinearAlgebra", "MutableArithmetics", "NaNMath", "OrderedCollections", "Printf", "SparseArrays", "SpecialFunctions", "Test", "Unicode"]
+git-tree-sha1 = "ceed48edffe0325a6e9ea00ecf3607af5089c413"
+uuid = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
+version = "1.9.0"
 
 [[deps.MbedTLS]]
 deps = ["Dates", "MbedTLS_jll", "MozillaCACerts_jll", "Random", "Sockets"]
@@ -595,12 +592,6 @@ version = "1.0.2"
 [[deps.Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
-[[deps.Mocking]]
-deps = ["ExprTools"]
-git-tree-sha1 = "748f6e1e4de814b101911e64cc12d83a6af66782"
-uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
-version = "0.7.2"
-
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
@@ -626,6 +617,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "887579a3eb005446d514ab7aeac5d1d027658b8f"
 uuid = "e7412a2a-1a6e-54c0-be00-318e2571c051"
 version = "1.3.5+1"
+
+[[deps.OpenBLAS32_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "9c6c2ed4b7acd2137b878eb96c68e63b76199d0f"
+uuid = "656ef2d0-ae68-5445-9ca0-591084a874a2"
+version = "0.3.17+0"
 
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
@@ -711,12 +708,6 @@ git-tree-sha1 = "8c5643a30c97e02f4e80b9fff99544f64292eb6f"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.35.7"
 
-[[deps.Polynomials]]
-deps = ["Intervals", "LinearAlgebra", "MutableArithmetics", "RecipesBase"]
-git-tree-sha1 = "a1f7f4e41404bed760213ca01d7f384319f717a5"
-uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
-version = "2.0.25"
-
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
@@ -726,6 +717,10 @@ version = "1.3.0"
 [[deps.Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[deps.Profile]]
+deps = ["Printf"]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[deps.Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]
@@ -770,11 +765,6 @@ git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
 
-[[deps.RoundingEmulator]]
-git-tree-sha1 = "40b9edad2e5287e05bd413a38f61a8ff55b9557b"
-uuid = "5eaf0fd0-dfba-4ccb-bf02-d820a40db705"
-version = "0.2.1"
-
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 version = "0.7.0"
@@ -787,11 +777,6 @@ version = "1.1.1"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
-
-[[deps.SetRounding]]
-git-tree-sha1 = "d7a25e439d07a17b7cdf97eecee504c50fedf5f6"
-uuid = "3cc68bcd-71a2-5612-b932-767ffbe40ab0"
-version = "0.2.1"
 
 [[deps.Showoff]]
 deps = ["Dates", "Grisu"]
@@ -874,12 +859,6 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-
-[[deps.TimeZones]]
-deps = ["Dates", "Downloads", "InlineStrings", "LazyArtifacts", "Mocking", "Printf", "RecipesBase", "Scratch", "Unicode"]
-git-tree-sha1 = "d634a3641062c040fc8a7e2a3ea17661cc159688"
-uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
-version = "1.9.0"
 
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]
@@ -1142,15 +1121,10 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─9c0d7e20-d976-41c3-bce0-b35e92b80bf2
-# ╠═2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
-# ╠═494252a0-eedc-4f1b-9446-3fcac9c42211
-# ╠═54c26009-0379-4297-b19a-4d4ab596cf09
-# ╠═4f53eed0-e1fc-4f47-a60b-a05835f54a01
-# ╟─e7d17f2f-b85a-4733-bec7-385a480802d8
-# ╠═1eb6b3ab-fe93-487c-a8c2-41b46067a57b
-# ╠═02639593-176b-45c5-8eaf-c6748e435ebf
-# ╠═37521a9d-4ed5-4b05-b868-71542cd36880
-# ╠═38479048-510d-4d46-b71e-54bcbe57f1e5
+# ╟─314a4ab6-5b7f-11ed-39f1-cddfcf4720be
+# ╠═e3fb67a4-09ca-4d8a-a974-75f92ccf5b82
+# ╟─2b88f724-4bf9-4504-a951-2f83bce72a16
+# ╠═8f67d603-258f-47c3-8054-289e09ac1598
+# ╠═68eeea85-c86a-4f02-9919-3b96da236b09
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
