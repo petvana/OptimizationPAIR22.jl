@@ -108,6 +108,18 @@ ILP_solution = let
 	(value.((x,y)), objective_value(model))
 end
 
+# ╔═╡ 885ac046-36a3-4f94-907f-cb95dceb682f
+ILP_solution_matrix = let
+	model = Model(GLPK.Optimizer)
+	c = [0, 1]; A = [-1 1; 3 2; 2 3]; b = [v1, v2, v3]
+	@variable(model, x[1:2] >= 0.0, Int)
+	@constraint(model, A*x .<= b)
+	@objective(model, Max, sum(c .* x))
+	optimize!(model)
+	#print(model)
+	(value.(x), objective_value(model))
+end
+
 # ╔═╡ bc461949-e9d7-46a6-8d15-424c14d209f3
 let
 	x = 0:0.1:4 # Show the lines
@@ -118,8 +130,10 @@ let
 
 	lp = LP_solution[1]
 	ilp = ILP_solution[1]
+	ilpm = ILP_solution_matrix[1]
 	plot!([lp[1]], [lp[2]], seriestype = :scatter, label = "LP optimum")
 	plot!([ilp[1]], [ilp[2]], seriestype = :scatter, label = "ILP optimum")
+	plot!([ilpm[1]], [ilpm[2]], seriestype = :scatter, label = "ILP optimum (matrix)")
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1159,6 +1173,7 @@ version = "1.4.1+0"
 # ╠═3e2024c2-28d3-44e7-a7ba-b25b2a258cef
 # ╟─4e3e0276-d270-417a-86cc-2b441ea852cb
 # ╟─cd997358-f50a-47b1-9697-41d2dfa5da05
+# ╟─885ac046-36a3-4f94-907f-cb95dceb682f
 # ╟─bc461949-e9d7-46a6-8d15-424c14d209f3
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
