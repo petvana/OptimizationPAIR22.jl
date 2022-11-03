@@ -16,23 +16,19 @@ Fist, please download the repository:
 
 ### Clone [github.com/petvana/OptimizationPAIR22.jl](https://github.com/petvana/OptimizationPAIR22.jl)
 
-The repository contains the following:
- - `notebook.jl` - This notebook
- - `install-Julia-on-Ubuntu.sh` - Install Julia on Ubuntu
- - `install-packages.jl` - Install Julia packages to be able to run this notebook offline
 """
 
 # ╔═╡ d00c5f9b-037c-4d46-9a94-d464b9df2107
 md"""
 ## Install Julia
 
-Please instal Julia v1.8.2 from [julialang.org/downloads](https://julialang.org/downloads/), or you can use script the following script on Ubuntu.
+Please install Julia v1.8.2 from [julialang.org/downloads](https://julialang.org/downloads/), or you can use script the following script on Ubuntu.
 
 ```
-install-Ubuntu.sh
+install-Julia-on-Ubuntu.sh
 ```
 
-The scripts downloads and extract the Julia. Also, it creates a symlink to `~/.local/bin/julia`. If you cannot run Julia, please restart the terminal (not whole OS).
+The scripts downloads and extract the Julia. Also, it creates a symlink to `~/.local/bin/julia`. If you cannot run Julia, please restart the terminal (not OS).
 """
 
 # ╔═╡ 58d29c81-a218-411e-b97d-6eb283d7858c

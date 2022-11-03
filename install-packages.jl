@@ -5,7 +5,8 @@ import Pkg
 Pkg.add([
         "Pluto",
         "Plots", 
-        "JuMP", "GLPK",
+        "JuMP", "GLPK", "Ipopt"
         "IntervalArithmetic", "IntervalConstraintProgramming",
+        "ForwardDiff",
         "Optim",
     ])

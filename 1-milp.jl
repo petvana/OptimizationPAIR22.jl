@@ -122,16 +122,6 @@ let
 	plot!([ilp[1]], [ilp[2]], seriestype = :scatter, label = "ILP optimum")
 end
 
-# ╔═╡ 0a4b2526-dba6-4486-9055-8b88585446ca
-md"##### To set notebook's width"
-
-# ╔═╡ 0f3cdeaa-dab1-445f-8dd5-115f94947ce5
-html"""<style>
-main {
-    max-width: 1000px;
-}
-</style>"""
-
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -1163,14 +1153,12 @@ version = "1.4.1+0"
 # ╟─7e0e7130-75c0-48ea-b589-f18f9e3f6e40
 # ╟─809f7103-2fe4-49bc-ac25-f9dece94f707
 # ╠═f37a9223-919d-4b1f-8706-1035209b8d08
-# ╠═d053c0f0-c170-4966-9a73-1864bcc8bd18
-# ╠═e9b4c0c9-abea-458f-a00e-abcad818e189
-# ╠═6d3884eb-80f7-45e2-a05b-34487ccd4db0
+# ╟─d053c0f0-c170-4966-9a73-1864bcc8bd18
+# ╟─e9b4c0c9-abea-458f-a00e-abcad818e189
+# ╟─6d3884eb-80f7-45e2-a05b-34487ccd4db0
 # ╠═3e2024c2-28d3-44e7-a7ba-b25b2a258cef
 # ╟─4e3e0276-d270-417a-86cc-2b441ea852cb
 # ╟─cd997358-f50a-47b1-9697-41d2dfa5da05
 # ╟─bc461949-e9d7-46a6-8d15-424c14d209f3
-# ╟─0a4b2526-dba6-4486-9055-8b88585446ca
-# ╠═0f3cdeaa-dab1-445f-8dd5-115f94947ce5
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
