@@ -30,18 +30,32 @@ x = 0.5..0.6
 # ╔═╡ 54c26009-0379-4297-b19a-4d4ab596cf09
 sin(x)
 
+# ╔═╡ 4f53eed0-e1fc-4f47-a60b-a05835f54a01
+let
+	f(x) = sin(x) + 0.1 * x^2
+	
+	x = 0:0.1:2pi
+	y = f.(x)
+	plot(x,y)
+	
+	xi = mince(0..2pi, 40)
+	yi = f.(xi)
+	boxes = [IntervalBox(p) for p in zip(xi, yi)]
+	plot!(boxes, label = "Intervals")
+end
+
 # ╔═╡ e7d17f2f-b85a-4733-bec7-385a480802d8
 md"""
 Show usage for 
 
-https://juliaintervals.github.io/pages/tutorials/tutorialTaylorModels/
+[juliaintervals.github.io/pages/tutorials/tutorialTaylorModels](https://juliaintervals.github.io/pages/tutorials/tutorialTaylorModels/)
 """
 
 # ╔═╡ 1eb6b3ab-fe93-487c-a8c2-41b46067a57b
-@bind pave_tolerance html"<input type=range min=0.01 max=0.99 value=0.12 step=0.01>"
+@bind pave_tolerance_sqrt html"<input type=range min=0.1 max=0.99 value=0.5 step=0.01>"
 
 # ╔═╡ 02639593-176b-45c5-8eaf-c6748e435ebf
-pave_tolerance
+pave_tolerance = pave_tolerance_sqrt^2
 
 # ╔═╡ 37521a9d-4ed5-4b05-b868-71542cd36880
 let
@@ -87,7 +101,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "6beaaebeb4c978b0282b307f2ad2a442c575e880"
+project_hash = "97031121c72e113bede8124936b41b94d19f5e50"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1142,6 +1156,7 @@ version = "1.4.1+0"
 # ╠═2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
 # ╠═494252a0-eedc-4f1b-9446-3fcac9c42211
 # ╠═54c26009-0379-4297-b19a-4d4ab596cf09
+# ╠═4f53eed0-e1fc-4f47-a60b-a05835f54a01
 # ╟─e7d17f2f-b85a-4733-bec7-385a480802d8
 # ╠═1eb6b3ab-fe93-487c-a8c2-41b46067a57b
 # ╠═02639593-176b-45c5-8eaf-c6748e435ebf

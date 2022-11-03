@@ -67,13 +67,13 @@ md"""
 """
 
 # ╔═╡ d053c0f0-c170-4966-9a73-1864bcc8bd18
-@bind v1 html"<input type=range min=0 max=2 value=1 step=0.5>"
+@bind v1 html"<input type=range min=-2 max=2 value=1 step=0.01>"
 
 # ╔═╡ e9b4c0c9-abea-458f-a00e-abcad818e189
-@bind v2 html"<input type=range min=0 max=20 value=12 step=1>"
+@bind v2 html"<input type=range min=1 max=15 value=12 step=0.01>"
 
 # ╔═╡ 6d3884eb-80f7-45e2-a05b-34487ccd4db0
-@bind v3 html"<input type=range min=0 max=20 value=12 step=1>"
+@bind v3 html"<input type=range min=1 max=17 value=12 step=0.01>"
 
 # ╔═╡ 3e2024c2-28d3-44e7-a7ba-b25b2a258cef
 (v1, v2, v3)
@@ -101,7 +101,7 @@ ILP_solution = let
 
 	@constraint(model, -x + y <= v1)
 	@constraint(model, 3x + 2y <= v2)
-	@constraint(model, 2x + 3y <= 12)
+	@constraint(model, 2x + 3y <= v3)
 	@objective(model, Max, y)
 	
 	optimize!(model)
@@ -110,29 +110,16 @@ end
 
 # ╔═╡ bc461949-e9d7-46a6-8d15-424c14d209f3
 let
-	grid(3,2, widths = (0.6,0.4))
-	plot(1,2)
-	
-
-	x = 0:0.1:4
-	
-	y = x .+ v1
-	plot(x,y)
-
-	y = (-2 .* x .+ v2) ./ 3 
-	plot!(x,y)
-
-	y = (-3 .* x .+ v3) ./ 2 
-	plot!(x,y)
-
-	@show (LP_solution[1])
-	
-	xlims!((0, 4))
-	ylims!((0, 3))
+	x = 0:0.1:4 # Show the lines
+	y = x .+ v1;               plot(x,y)
+	y = (-3 .* x .+ v2) ./ 2;  plot!(x,y)
+	y = (-2 .* x .+ v3) ./ 3;  plot!(x,y)
+	xlims!((0, 4));	ylims!((0, 3));
 
 	lp = LP_solution[1]
-	
-	plot!([lp[1]], [lp[2]])
+	ilp = ILP_solution[1]
+	plot!([lp[1]], [lp[2]], seriestype = :scatter, label = "LP optimum")
+	plot!([ilp[1]], [ilp[2]], seriestype = :scatter, label = "ILP optimum")
 end
 
 # ╔═╡ 0a4b2526-dba6-4486-9055-8b88585446ca
@@ -141,7 +128,7 @@ md"##### To set notebook's width"
 # ╔═╡ 0f3cdeaa-dab1-445f-8dd5-115f94947ce5
 html"""<style>
 main {
-    max-width: 1100px;
+    max-width: 1000px;
 }
 </style>"""
 
@@ -164,7 +151,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "ccb26ad1f6d75946305fa8f91bc22c8e58bf7049"
+project_hash = "5aedf54bc1c20100d99557901a746f182721be2e"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1176,13 +1163,13 @@ version = "1.4.1+0"
 # ╟─7e0e7130-75c0-48ea-b589-f18f9e3f6e40
 # ╟─809f7103-2fe4-49bc-ac25-f9dece94f707
 # ╠═f37a9223-919d-4b1f-8706-1035209b8d08
-# ╟─d053c0f0-c170-4966-9a73-1864bcc8bd18
+# ╠═d053c0f0-c170-4966-9a73-1864bcc8bd18
 # ╠═e9b4c0c9-abea-458f-a00e-abcad818e189
 # ╠═6d3884eb-80f7-45e2-a05b-34487ccd4db0
 # ╠═3e2024c2-28d3-44e7-a7ba-b25b2a258cef
 # ╟─4e3e0276-d270-417a-86cc-2b441ea852cb
 # ╟─cd997358-f50a-47b1-9697-41d2dfa5da05
-# ╠═bc461949-e9d7-46a6-8d15-424c14d209f3
+# ╟─bc461949-e9d7-46a6-8d15-424c14d209f3
 # ╟─0a4b2526-dba6-4486-9055-8b88585446ca
 # ╠═0f3cdeaa-dab1-445f-8dd5-115f94947ce5
 # ╟─00000000-0000-0000-0000-000000000001

@@ -20,7 +20,6 @@ The repository contains the following:
  - `notebook.jl` - This notebook
  - `install-Julia-on-Ubuntu.sh` - Install Julia on Ubuntu
  - `install-packages.jl` - Install Julia packages to be able to run this notebook offline
-
 """
 
 # ╔═╡ d00c5f9b-037c-4d46-9a94-d464b9df2107
@@ -84,9 +83,27 @@ main {
 }
 </style>"""
 
+# ╔═╡ 00000000-0000-0000-0000-000000000001
+PLUTO_PROJECT_TOML_CONTENTS = """
+[deps]
+"""
+
+# ╔═╡ 00000000-0000-0000-0000-000000000002
+PLUTO_MANIFEST_TOML_CONTENTS = """
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.8.2"
+manifest_format = "2.0"
+project_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+
+[deps]
+"""
+
 # ╔═╡ Cell order:
 # ╟─583aa664-5abe-11ed-2377-67f9156b65c0
 # ╟─d00c5f9b-037c-4d46-9a94-d464b9df2107
 # ╟─58d29c81-a218-411e-b97d-6eb283d7858c
 # ╟─0a4b2526-dba6-4486-9055-8b88585446ca
 # ╠═0f3cdeaa-dab1-445f-8dd5-115f94947ce5
+# ╟─00000000-0000-0000-0000-000000000001
+# ╟─00000000-0000-0000-0000-000000000002
