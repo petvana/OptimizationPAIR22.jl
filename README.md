@@ -16,3 +16,11 @@ Next, please download necessary packages by:
 ```bash
 julia install-packages.jl
 ```
+
+If you want to run Pluto notebooks, please start Pluto in Julia
+``` julia
+using Pluto; Pluto.run()
+```
+
+| WARNING: **The content of the notebooks is not yet final.** |
+| --- |
