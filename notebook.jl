@@ -22,9 +22,12 @@ using JuMP, GLPK
 # Load packages
 using Plots
 
+# ╔═╡ 2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
+using IntervalArithmetic, IntervalConstraintProgramming
+
 # ╔═╡ 583aa664-5abe-11ed-2377-67f9156b65c0
 md"""
-# Main title
+# Various tools for solving optimization problems in Julia
 
 **Petr Váňa**, Jindřiška Deckerová
 
@@ -92,6 +95,16 @@ Finally, please open this notebook (`notebook.jl`).
 
 """
 
+# ╔═╡ 0a4b2526-dba6-4486-9055-8b88585446ca
+md"##### To set notebook's width"
+
+# ╔═╡ 0f3cdeaa-dab1-445f-8dd5-115f94947ce5
+html"""<style>
+main {
+    max-width: 1100px;
+}
+</style>"""
+
 # ╔═╡ 5db20541-b127-49ef-8c5e-d25fcd0ce091
 md"""
 ## Using JuMP for Optimization
@@ -137,15 +150,40 @@ md"""
 ### Solve using Linear Programming
 """
 
+# ╔═╡ d053c0f0-c170-4966-9a73-1864bcc8bd18
+@bind v1 html"<input type=range min=0 max=2 value=1 step=0.5>"
+
+# ╔═╡ e9b4c0c9-abea-458f-a00e-abcad818e189
+@bind v2 html"<input type=range min=0 max=20 value=12 step=1>"
+
+# ╔═╡ 3e2024c2-28d3-44e7-a7ba-b25b2a258cef
+(v1, v2)
+
 # ╔═╡ 4e3e0276-d270-417a-86cc-2b441ea852cb
 LP_solution = let
 	model = Model(GLPK.Optimizer)
 	@variable(model, x >= 0)
 	@variable(model, y >= 0)
+
+	@constraint(model, -x + y <= v1)
+	@constraint(model, 3x + 2y <= v2)
+	@constraint(model, 2x + 3y <= 12)
+	@objective(model, Max, y)
 	
-	@constraint(model, 6x + 8y >= 100)
-	@constraint(model, 7x + 12y >= 120)
-	@objective(model, Min, 12x + 20y)
+	optimize!(model)
+	(value.((x,y)), objective_value(model))
+end
+
+# ╔═╡ cd997358-f50a-47b1-9697-41d2dfa5da05
+ILP_solution = let
+	model = Model(GLPK.Optimizer)
+	@variable(model, x >= 0, Int)
+	@variable(model, y >= 0, Int)
+
+	@constraint(model, -x + y <= v1)
+	@constraint(model, 3x + 2y <= v2)
+	@constraint(model, 2x + 3y <= 12)
+	@objective(model, Max, y)
 	
 	optimize!(model)
 	(value.((x,y)), objective_value(model))
@@ -164,15 +202,41 @@ end
 # ╔═╡ 7e66076f-c653-4525-89a2-657c2ab21cfe
 x
 
+# ╔═╡ 9c0d7e20-d976-41c3-bce0-b35e92b80bf2
+md"""
+## Interval arithmetics and constrained programming
+
+[juliaintervals.github.io/pages/tutorials/tutorialConstraintProgramming](https://juliaintervals.github.io/pages/tutorials/tutorialConstraintProgramming/)
+"""
+
+# ╔═╡ 1eb6b3ab-fe93-487c-a8c2-41b46067a57b
+@bind pave_tolerance html"<input type=range min=0.01 max=0.99 value=0.125 step=0.01>"
+
+# ╔═╡ 02639593-176b-45c5-8eaf-c6748e435ebf
+pave_tolerance
+
+# ╔═╡ 37521a9d-4ed5-4b05-b868-71542cd36880
+let
+	S = IntervalConstraintProgramming.@constraint 1 <= x^2+y^2 <= 3
+	X = IntervalBox(-100..100, 2) # our starting box
+	paving = pave(S, X, pave_tolerance)
+	plot(paving.inner, c="green", aspect_ratio=:equal, label="inner")
+	plot!(paving.boundary, c="gray", label="boundary")
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
+IntervalArithmetic = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
+IntervalConstraintProgramming = "138f1668-1576-5ad7-91b9-7425abbf3153"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
 GLPK = "~1.1.0"
+IntervalArithmetic = "~0.17.8"
+IntervalConstraintProgramming = "~0.9.1"
 JuMP = "~1.4.0"
 Plots = "~1.35.7"
 """
@@ -183,7 +247,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "5aedf54bc1c20100d99557901a746f182721be2e"
+project_hash = "5c26b56ea5bc4fac991c33c313765c4aa3c220ba"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -211,6 +275,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "19a35467a82e236ff51bc17a3a44b69ef35185a2"
 uuid = "6e34b625-4abd-537c-b88f-471c36dfa7a0"
 version = "1.0.8+0"
+
+[[deps.CRlibm]]
+deps = ["Libdl"]
+git-tree-sha1 = "9d1c22cff9c04207f336b8e64840d0bd40d86e0e"
+uuid = "96374032-68de-5a5b-8d9e-752f78720389"
+version = "0.8.0"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -330,11 +400,21 @@ deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 version = "1.6.0"
 
+[[deps.ErrorfreeArithmetic]]
+git-tree-sha1 = "d6863c556f1142a061532e79f611aa46be201686"
+uuid = "90fa49ef-747e-5e6f-a989-263ba693cf1a"
+version = "0.5.2"
+
 [[deps.Expat_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "bad72f730e9e91c08d9427d5e8db95478a3c323d"
 uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
 version = "2.4.8+0"
+
+[[deps.ExprTools]]
+git-tree-sha1 = "56559bbef6ca5ea0c0818fa5c90320398a6fbf8d"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.8"
 
 [[deps.FFMPEG]]
 deps = ["FFMPEG_jll"]
@@ -347,6 +427,12 @@ deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers",
 git-tree-sha1 = "74faea50c1d007c85837327f6775bea60b5492dd"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
 version = "4.4.2+2"
+
+[[deps.FastRounding]]
+deps = ["ErrorfreeArithmetic", "Test"]
+git-tree-sha1 = "224175e213fd4fe112db3eea05d66b308dc2bf6b"
+uuid = "fa42c844-2597-5d31-933b-ebd51ab2693f"
+version = "0.2.0"
 
 [[deps.FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -418,9 +504,9 @@ version = "0.69.5"
 
 [[deps.GR_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Pkg", "Qt5Base_jll", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "bc9f7725571ddb4ab2c4bc74fa397c1c5ad08943"
+git-tree-sha1 = "080c3bfabd8242f52d84425fd2ee84ae75ad789d"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
-version = "0.69.1+0"
+version = "0.69.1+1"
 
 [[deps.Gettext_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "XML2_jll"]
@@ -462,9 +548,45 @@ git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
 uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
 version = "0.5.1"
 
+[[deps.InlineStrings]]
+deps = ["Parsers"]
+git-tree-sha1 = "a62189e59d33e1615feb7a48c0bea7c11e4dc61d"
+uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+version = "1.3.0"
+
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+
+[[deps.IntervalArithmetic]]
+deps = ["CRlibm", "FastRounding", "LinearAlgebra", "Markdown", "Random", "RecipesBase", "RoundingEmulator", "SetRounding", "StaticArrays"]
+git-tree-sha1 = "00cce14aeb4b256f2f57caf3f3b9354c27d93259"
+uuid = "d1acc4aa-44c8-5952-acd4-ba5d80a2a253"
+version = "0.17.8"
+
+[[deps.IntervalConstraintProgramming]]
+deps = ["IntervalArithmetic", "IntervalContractors", "IntervalRootFinding", "MacroTools", "Test"]
+git-tree-sha1 = "e5234b7d91eaaa80305cd8e74a5f2231d4d0e05e"
+uuid = "138f1668-1576-5ad7-91b9-7425abbf3153"
+version = "0.9.1"
+
+[[deps.IntervalContractors]]
+deps = ["IntervalArithmetic"]
+git-tree-sha1 = "ae2dc7466d668c8402d5635c3345efc5f65e0a0d"
+uuid = "15111844-de3b-5229-b4ba-526f2f385dc9"
+version = "0.4.7"
+
+[[deps.IntervalRootFinding]]
+deps = ["ForwardDiff", "IntervalArithmetic", "LinearAlgebra", "Polynomials", "Reexport", "StaticArrays"]
+git-tree-sha1 = "b6969692c800cc5b90608fbd3be83189edc5e446"
+uuid = "d2bf35a9-74e0-55ec-b149-d360ff49b807"
+version = "0.5.10"
+
+[[deps.Intervals]]
+deps = ["Dates", "Printf", "RecipesBase", "Serialization", "TimeZones"]
+git-tree-sha1 = "f3c7f871d642d244e7a27e3fb81e8441e13230d8"
+uuid = "d8418881-c3e1-53bb-8760-2df7ec849ed5"
+version = "1.8.0"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
@@ -535,6 +657,10 @@ deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdow
 git-tree-sha1 = "ab9aa169d2160129beb241cb2750ca499b4e90e9"
 uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 version = "0.15.17"
+
+[[deps.LazyArtifacts]]
+deps = ["Artifacts", "Pkg"]
+uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -666,6 +792,12 @@ version = "1.0.2"
 [[deps.Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[deps.Mocking]]
+deps = ["ExprTools"]
+git-tree-sha1 = "748f6e1e4de814b101911e64cc12d83a6af66782"
+uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
+version = "0.7.2"
+
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
@@ -776,6 +908,12 @@ git-tree-sha1 = "8c5643a30c97e02f4e80b9fff99544f64292eb6f"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.35.7"
 
+[[deps.Polynomials]]
+deps = ["Intervals", "LinearAlgebra", "MutableArithmetics", "RecipesBase"]
+git-tree-sha1 = "a1f7f4e41404bed760213ca01d7f384319f717a5"
+uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+version = "2.0.25"
+
 [[deps.Preferences]]
 deps = ["TOML"]
 git-tree-sha1 = "47e5f437cc0e7ef2ce8406ce1e7e24d44915f88d"
@@ -833,6 +971,11 @@ git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
 
+[[deps.RoundingEmulator]]
+git-tree-sha1 = "40b9edad2e5287e05bd413a38f61a8ff55b9557b"
+uuid = "5eaf0fd0-dfba-4ccb-bf02-d820a40db705"
+version = "0.2.1"
+
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 version = "0.7.0"
@@ -845,6 +988,11 @@ version = "1.1.1"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+
+[[deps.SetRounding]]
+git-tree-sha1 = "d7a25e439d07a17b7cdf97eecee504c50fedf5f6"
+uuid = "3cc68bcd-71a2-5612-b932-767ffbe40ab0"
+version = "0.2.1"
 
 [[deps.Showoff]]
 deps = ["Dates", "Grisu"]
@@ -927,6 +1075,12 @@ version = "0.1.1"
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.TimeZones]]
+deps = ["Dates", "Downloads", "InlineStrings", "LazyArtifacts", "Mocking", "Printf", "RecipesBase", "Scratch", "Unicode"]
+git-tree-sha1 = "d634a3641062c040fc8a7e2a3ea17661cc159688"
+uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
+version = "1.9.0"
 
 [[deps.TranscodingStreams]]
 deps = ["Random", "Test"]
@@ -1192,15 +1346,26 @@ version = "1.4.1+0"
 # ╟─583aa664-5abe-11ed-2377-67f9156b65c0
 # ╟─d00c5f9b-037c-4d46-9a94-d464b9df2107
 # ╟─58d29c81-a218-411e-b97d-6eb283d7858c
+# ╟─0a4b2526-dba6-4486-9055-8b88585446ca
+# ╠═0f3cdeaa-dab1-445f-8dd5-115f94947ce5
 # ╟─5db20541-b127-49ef-8c5e-d25fcd0ce091
 # ╟─0e972eb1-503f-4eea-ad0f-cc7d6c39297e
 # ╟─7e0e7130-75c0-48ea-b589-f18f9e3f6e40
 # ╟─809f7103-2fe4-49bc-ac25-f9dece94f707
 # ╠═f37a9223-919d-4b1f-8706-1035209b8d08
+# ╠═d053c0f0-c170-4966-9a73-1864bcc8bd18
+# ╠═e9b4c0c9-abea-458f-a00e-abcad818e189
+# ╠═3e2024c2-28d3-44e7-a7ba-b25b2a258cef
 # ╠═4e3e0276-d270-417a-86cc-2b441ea852cb
+# ╠═cd997358-f50a-47b1-9697-41d2dfa5da05
 # ╠═06092a83-8e88-4761-90b8-e5d1133186b9
 # ╠═8d21bfc1-e273-4f33-bddd-db32cbf5f7b2
 # ╠═e3b89fb4-98e0-4433-b0bb-cfb48ef5f706
 # ╠═7e66076f-c653-4525-89a2-657c2ab21cfe
+# ╟─9c0d7e20-d976-41c3-bce0-b35e92b80bf2
+# ╠═2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
+# ╠═1eb6b3ab-fe93-487c-a8c2-41b46067a57b
+# ╠═02639593-176b-45c5-8eaf-c6748e435ebf
+# ╠═37521a9d-4ed5-4b05-b868-71542cd36880
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
