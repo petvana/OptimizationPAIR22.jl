@@ -30,6 +30,12 @@ x = 0.5..0.6
 # ╔═╡ 54c26009-0379-4297-b19a-4d4ab596cf09
 sin(x)
 
+# ╔═╡ 870c2f65-e9a7-4d1c-b8f0-2a55bf58c2e1
+(pi)..(pi)
+
+# ╔═╡ 8a6c6e47-c410-4def-8d4a-a169501582f8
+sin((pi)..(pi))
+
 # ╔═╡ 7686bc7f-beb0-44cc-b741-9ab793ca0c93
 let
 	a = 1..2
@@ -63,6 +69,9 @@ Show usage for
 
 # ╔═╡ 1eb6b3ab-fe93-487c-a8c2-41b46067a57b
 @bind pave_tolerance_sqrt html"<input type=range min=0.1 max=0.99 value=0.5 step=0.01>"
+
+# ╔═╡ c9a23d82-7bdc-4e1c-a7b1-340a21121491
+md"## Constrained programming"
 
 # ╔═╡ 02639593-176b-45c5-8eaf-c6748e435ebf
 pave_tolerance = pave_tolerance_sqrt^2
@@ -1151,11 +1160,14 @@ version = "1.4.1+0"
 # ╠═2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
 # ╠═494252a0-eedc-4f1b-9446-3fcac9c42211
 # ╠═54c26009-0379-4297-b19a-4d4ab596cf09
+# ╠═870c2f65-e9a7-4d1c-b8f0-2a55bf58c2e1
+# ╠═8a6c6e47-c410-4def-8d4a-a169501582f8
 # ╠═7686bc7f-beb0-44cc-b741-9ab793ca0c93
 # ╠═db088590-38e3-4569-a848-d05e19cebf12
 # ╠═4f53eed0-e1fc-4f47-a60b-a05835f54a01
 # ╟─e7d17f2f-b85a-4733-bec7-385a480802d8
 # ╠═1eb6b3ab-fe93-487c-a8c2-41b46067a57b
+# ╟─c9a23d82-7bdc-4e1c-a7b1-340a21121491
 # ╠═02639593-176b-45c5-8eaf-c6748e435ebf
 # ╠═37521a9d-4ed5-4b05-b868-71542cd36880
 # ╟─00000000-0000-0000-0000-000000000001
