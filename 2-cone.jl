@@ -27,6 +27,27 @@ Conic optimization is a subfield of convex optimization that studies problems co
 
 The problem stands to find the shortest path from point `A` to point `B` that intersects circle `C` with `radius`.
 
+#### [Second order cone constraint](https://docs.juliahub.com/JuMP/DmXqY/1.4.0/autodocs/#JuMP.SecondOrderCone)
+
+Second order cone object that can be used to constrain the euclidean norm of a vector x to be less than or equal to a nonnegative scalar t. This is a shortcut for the MOI.SecondOrderCone.
+
+Examples
+
+The following constrains $\|(x-1, x-2)\|_2 \le t$ and $t \ge 0$:
+
+```
+julia> model = Model();
+
+julia> @variable(model, x)
+x
+
+julia> @variable(model, t)
+t
+
+julia> @constraint(model, [t, x-1, x-2] in SecondOrderCone())
+[t, x - 1, x - 2] ∈ MathOptInterface.SecondOrderCone(3)
+```
+
 """
 
 # ╔═╡ d1dac8d2-276d-4828-a1e7-e981a6f07dc3
@@ -52,15 +73,15 @@ let
 	# C = [1, 5] # It uses the global settings
 	
 	@variable(model, x[1:2]) # Visiting location at the target C
-	@variable(model, l[1:2]) # Squared lengths (l[1] from A to x; l[2] from x to B)
+	@variable(model, l[1:2] >= 0) # Squared lengths (l[1] from A to x; l[2] from x to B)
 
 	# Constrain x to be within the target disk region C
 	@constraint(model, radius^2 >= sum((x[j] - C[j])^2 for j = 1:2))
-	# Constrain the lengths l[:] of the segments 
-	@constraint(model, l[1] >= sum((x[j] - A[j])^2 for j = 1:2))
-	@constraint(model, l[2] >= sum((x[j] - B[j])^2 for j = 1:2))
+	# Cone constraints for the lengths l[:]
+	@constraint(model, [l[1], x[1]-A[1], x[2]-A[2]] in SecondOrderCone())
+	@constraint(model, [l[2], x[1]-B[1], x[2]-B[2]] in SecondOrderCone())
 	# Minimize the lengths
-	@objective(model, Min, l[1]^2 + l[2]^2 )
+	@objective(model, Min, l[1] + l[2] )
 
 	print(model)
 	
