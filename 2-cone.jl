@@ -9,6 +9,10 @@ using Clarabel, JuMP, Plots
 
 # ╔═╡ ef04b988-7806-4615-85d8-fbc828580a14
 md"""
+# Conic optimization
+
+Conic optimization is a subfield of convex optimization that studies problems consisting of minimizing a convex function over the intersection of an affine subspace and a convex cone. 
+
 ## Point-Circle-Point problem
 
 The problem stands to find the shortest path from point `A` to point `B` that intersects circle `C` with `radius`.
@@ -59,10 +63,7 @@ let
 	plot_circle(C, radius)
 	plot_line(A, xval)
 	plot_line(B, xval)
-end
-
-# ╔═╡ 8a96a71f-5638-4d00-9bf0-30bb098642d9
-md"https://danpereda.github.io/post/conicopt/
+en
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1181,9 +1182,8 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─ef04b988-7806-4615-85d8-fbc828580a14
+# ╠═ef04b988-7806-4615-85d8-fbc828580a14
 # ╠═0ee8750d-d8a6-49b2-9627-6d0420bee6b1
 # ╠═48320132-5b76-11ed-00e2-a73231c40ca6
-# ╠═8a96a71f-5638-4d00-9bf0-30bb098642d9
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

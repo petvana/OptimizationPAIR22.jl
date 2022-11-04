@@ -10,6 +10,29 @@ using JuMP, Ipopt, Plots
 # ╔═╡ 314a4ab6-5b7f-11ed-39f1-cddfcf4720be
 md"## Non-linear programming"
 
+# ╔═╡ 1b563bb3-3922-44e5-b6dd-a819d57e1cfa
+md"### Basic example"
+
+# ╔═╡ 5dd592bb-22f8-4816-b315-86bfd0c0b071
+let
+	fce(x) = sin(x) + 0.01 * x^2
+
+	model = Model(Ipopt.Optimizer)
+	@variable(model, x)
+	#@variable(model, x >= 0)	
+	@NLobjective(model, Min, sin(x) + 0.01 * x^2)
+
+	optimize!(model)
+
+	xp = -10:0.1:10 # Show the lines
+	yp = fce.(xp);
+	plot(xp,yp)
+
+	xval = value(x)
+	yval = fce(xval)
+	plot!([xval], [yval], seriestype = :scatter, label = "Ipopt")
+end
+
 # ╔═╡ 2b88f724-4bf9-4504-a951-2f83bce72a16
 md"### Example with 2D Dubins vehicle"
 
@@ -70,13 +93,6 @@ let
 	plot!(x, y, seriestype = :scatter, label = nothing, aspect_ratio=:equal)
 end
 
-# ╔═╡ 68eeea85-c86a-4f02-9919-3b96da236b09
-html"""<style>
-main {
-    max-width: 1100px;
-}
-</style>"""
-
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -96,7 +112,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "460b0ddfdcc1005bb7ab3c23367ba5d78637eb41"
+project_hash = "62d4947b8dc92ada4a685d427c2ba32a10307df4"
 
 [[deps.ASL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1123,8 +1139,9 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─314a4ab6-5b7f-11ed-39f1-cddfcf4720be
 # ╠═e3fb67a4-09ca-4d8a-a974-75f92ccf5b82
+# ╟─1b563bb3-3922-44e5-b6dd-a819d57e1cfa
+# ╠═5dd592bb-22f8-4816-b315-86bfd0c0b071
 # ╟─2b88f724-4bf9-4504-a951-2f83bce72a16
 # ╠═8f67d603-258f-47c3-8054-289e09ac1598
-# ╠═68eeea85-c86a-4f02-9919-3b96da236b09
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
