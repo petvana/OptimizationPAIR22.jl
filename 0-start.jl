@@ -69,6 +69,19 @@ Finally, please open this notebook (`notebook.jl`).
 
 """
 
+# ╔═╡ 8768f7e2-2067-4029-b247-5bd070db41ce
+md"""
+## Basic examples
+
+#### Repo [github.com/petvana/OptimizationPAIR22.jl](https://github.com/petvana/OptimizationPAIR22.jl)
+"""
+
+# ╔═╡ a1450a01-8ada-4865-b67b-cdc65de4450f
+@code_llvm hash(1)
+
+# ╔═╡ 5ab59420-702e-4d92-8725-84ef803e18e9
+@code_native hash(1)
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -89,5 +102,8 @@ project_hash = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
 # ╟─583aa664-5abe-11ed-2377-67f9156b65c0
 # ╟─d00c5f9b-037c-4d46-9a94-d464b9df2107
 # ╟─58d29c81-a218-411e-b97d-6eb283d7858c
+# ╟─8768f7e2-2067-4029-b247-5bd070db41ce
+# ╠═a1450a01-8ada-4865-b67b-cdc65de4450f
+# ╠═5ab59420-702e-4d92-8725-84ef803e18e9
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
