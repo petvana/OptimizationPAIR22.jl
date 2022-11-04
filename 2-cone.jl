@@ -73,7 +73,7 @@ let
 	# C = [1, 5] # It uses the global settings
 	
 	@variable(model, x[1:2]) # Visiting location at the target C
-	@variable(model, l[1:2] >= 0) # Squared lengths (l[1] from A to x; l[2] from x to B)
+	@variable(model, l[1:2] >= 0) # Lengths (l[1] from A to x; l[2] from x to B)
 
 	# Constrain x to be within the target disk region C
 	@constraint(model, radius^2 >= sum((x[j] - C[j])^2 for j = 1:2))
