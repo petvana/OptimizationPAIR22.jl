@@ -8,25 +8,35 @@ using InteractiveUtils
 using Clarabel, JuMP, Plots
 
 # ╔═╡ ef04b988-7806-4615-85d8-fbc828580a14
-md"## Point-Circle-Point problem"
+md"""
+## Point-Circle-Point problem
+
+The problem stands to find the shortest path from point `A` to point `B` that intersects circle `C` with `radius`.
+
+"""
 
 # ╔═╡ 48320132-5b76-11ed-00e2-a73231c40ca6
 let
 	model = JuMP.Model(Clarabel.Optimizer)
 	#set_optimizer_attribute(model, "verbose", true)
 
+	# Initial and final points
 	A = [0, 0]
 	B = [5, 3]
-	
+
+	# Target circle region C with radius
 	radius = 1.0
-	target = [1, 5]
-	D = 2
+	C = [1, 5]
 	
-	@variable(model, x[1:2])
-	@variable(model, l[1:2])
-	@constraint(model, radius^2 >= sum((x[j] - target[j])^2 for j = 1:D))
-	@constraint(model, l[1] >= sum((x[j] - A[j])^2 for j = 1:D))
-	@constraint(model, l[2] >= sum((x[j] - B[j])^2 for j = 1:D))
+	@variable(model, x[1:2]) # Visiting location at the target C
+	@variable(model, l[1:2]) # Squared lengths (l[1] from A to x; l[2] from x to B)
+
+	# Constrain x to be within the target disk region C
+	@constraint(model, radius^2 >= sum((x[j] - C[j])^2 for j = 1:2))
+	# Constrain the lengths l[:] of the segments 
+	@constraint(model, l[1] >= sum((x[j] - A[j])^2 for j = 1:2))
+	@constraint(model, l[2] >= sum((x[j] - B[j])^2 for j = 1:2))
+	# Minimize the lengths
 	@objective(model, Min, l[1]^2 + l[2]^2 )
 
 	print(model)
@@ -46,20 +56,13 @@ let
 	@show xval
 	plot()
 	plot!([xval[1]], [xval[2]], seriestype = :scatter, label = "x")
-	plot_circle(target, radius)
+	plot_circle(C, radius)
 	plot_line(A, xval)
 	plot_line(B, xval)
 end
 
 # ╔═╡ 8a96a71f-5638-4d00-9bf0-30bb098642d9
-md"https://danpereda.github.io/post/conicopt/"
-
-# ╔═╡ 1d1e58f3-d9ef-4742-be2c-ed5d5836d50c
-html"""<style>
-main {
-    max-width: 900px;
-}
-</style>"""
+md"https://danpereda.github.io/post/conicopt/
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1182,6 +1185,5 @@ version = "1.4.1+0"
 # ╠═0ee8750d-d8a6-49b2-9627-6d0420bee6b1
 # ╠═48320132-5b76-11ed-00e2-a73231c40ca6
 # ╠═8a96a71f-5638-4d00-9bf0-30bb098642d9
-# ╠═1d1e58f3-d9ef-4742-be2c-ed5d5836d50c
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
