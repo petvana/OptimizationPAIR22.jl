@@ -18,6 +18,9 @@ end
 # Load packages
 using JuMP, GLPK, Plots
 
+# ╔═╡ 9ced5636-d045-444e-ae87-4a39ac1099cf
+using Random
+
 # ╔═╡ 9a1a2733-5800-4cfa-a398-1d47f142f185
 md"#### Sources [github.com/petvana/OptimizationPAIR22.jl](https://github.com/petvana/OptimizationPAIR22.jl)"
 
@@ -136,12 +139,105 @@ let
 	plot!([ilpm[1]], [ilpm[2]], seriestype = :scatter, label = "ILP optimum (matrix)")
 end
 
+# ╔═╡ fa2929ea-dd00-4df4-af81-b416febef346
+md"""
+## TSP example
+
+We will replicate the example from
+
+[jump.dev/JuMP.jl/stable/tutorials/algorithms/tsp_lazy_constraints](https://jump.dev/JuMP.jl/stable/tutorials/algorithms/tsp_lazy_constraints/)
+"""
+
+# ╔═╡ 79d3df23-cda1-463c-8e66-04a95d064be1
+function generate_distance_matrix(n; random_seed = 1)
+	rng = Random.MersenneTwister(random_seed)
+	X = 100 * rand(rng, n)
+	Y = 100 * rand(rng, n)
+	d = [sqrt((X[i] - X[j])^2 + (Y[i] - Y[j])^2) for i in 1:n, j in 1:n]
+	return X, Y, d
+end
+
+# ╔═╡ 5c83b4a8-7a5e-4381-8570-59f8be398ad5
+function subtour(edges::Vector{Tuple{Int,Int}}, n)
+    shortest_subtour, unvisited = collect(1:n), Set(collect(1:n))
+    while !isempty(unvisited)
+        this_cycle, neighbors = Int[], unvisited
+        while !isempty(neighbors)
+            current = pop!(neighbors)
+            push!(this_cycle, current)
+            if length(this_cycle) > 1
+                pop!(unvisited, current)
+            end
+            neighbors = [j for (i, j) in edges if i == current && j in unvisited]
+        end
+        if length(this_cycle) < length(shortest_subtour)
+            shortest_subtour = this_cycle
+        end
+    end
+    return shortest_subtour
+end
+
+# ╔═╡ 0107a645-f7b9-46f3-aa28-d6a3a5f93782
+function build_tsp_model(d, n)
+    model = Model(GLPK.Optimizer)
+    @variable(model, x[1:n, 1:n], Bin, Symmetric)
+    @objective(model, Min, sum(d .* x) / 2)
+    @constraint(model, [i in 1:n], sum(x[i, :]) == 2)
+    @constraint(model, [i in 1:n], x[i, i] == 0)
+    return model
+end
+
+# ╔═╡ 3f3a80c4-50c5-4ac5-bde6-a726a6b36416
+function selected_edges(x::Matrix{Float64}, n)
+    return Tuple{Int,Int}[(i, j) for i in 1:n, j in 1:n if x[i, j] > 0.5]
+end
+
+# ╔═╡ 4a797039-3501-4edf-af83-af6552fe6160
+subtour(x::Matrix{Float64}) = subtour(selected_edges(x, size(x, 1)), size(x, 1))
+
+# ╔═╡ b7d30b3d-0547-4296-9bb9-53933432d0f8
+subtour(x::AbstractMatrix{VariableRef}) = subtour(value.(x))
+
+# ╔═╡ 2878ee5b-4615-4588-89db-6115a1dbbe90
+function plot_tour(X, Y, x)
+	plot = Plots.plot()
+	for (i, j) in selected_edges(x, size(x, 1))
+		Plots.plot!([X[i], X[j]], [Y[i], Y[j]]; legend = false)
+	end
+	return plot
+end
+
+# ╔═╡ c20547d2-8d96-4ce6-929a-885daf60795a
+let
+	n = 40
+	X, Y, d = generate_distance_matrix(n)
+	iterative_model = build_tsp_model(d, n)
+	optimize!(iterative_model)
+	time_iterated = solve_time(iterative_model)
+	cycle = subtour(iterative_model[:x])
+	while 1 < length(cycle) < n
+	    println("Found cycle of length $(length(cycle))")
+	    S = [(i, j) for (i, j) in Iterators.product(cycle, cycle) if i < j]
+	    @constraint(
+	        iterative_model,
+	        sum(iterative_model[:x][i, j] for (i, j) in S) <= length(cycle) - 1,
+	    )
+	    optimize!(iterative_model)
+	    time_iterated += solve_time(iterative_model)
+	    cycle = subtour(iterative_model[:x])
+	end
+	
+	objective_value(iterative_model)
+	plot_tour(X, Y, value.(iterative_model[:x]))
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 GLPK = "60bf3e95-4087-53dc-ae20-288a0d20c6a6"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 GLPK = "~1.1.0"
@@ -155,7 +251,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "5aedf54bc1c20100d99557901a746f182721be2e"
+project_hash = "13b0efe589f44ddad2083848058ac9923313a66f"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1175,5 +1271,15 @@ version = "1.4.1+0"
 # ╟─cd997358-f50a-47b1-9697-41d2dfa5da05
 # ╟─885ac046-36a3-4f94-907f-cb95dceb682f
 # ╟─bc461949-e9d7-46a6-8d15-424c14d209f3
+# ╟─fa2929ea-dd00-4df4-af81-b416febef346
+# ╠═9ced5636-d045-444e-ae87-4a39ac1099cf
+# ╠═79d3df23-cda1-463c-8e66-04a95d064be1
+# ╠═5c83b4a8-7a5e-4381-8570-59f8be398ad5
+# ╠═0107a645-f7b9-46f3-aa28-d6a3a5f93782
+# ╠═3f3a80c4-50c5-4ac5-bde6-a726a6b36416
+# ╠═4a797039-3501-4edf-af83-af6552fe6160
+# ╠═b7d30b3d-0547-4296-9bb9-53933432d0f8
+# ╟─2878ee5b-4615-4588-89db-6115a1dbbe90
+# ╠═c20547d2-8d96-4ce6-929a-885daf60795a
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
