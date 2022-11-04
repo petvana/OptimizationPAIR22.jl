@@ -60,11 +60,11 @@ let
 		@NLconstraint(model, dir[i,1]^2 + dir[i,2]^2 == 1)
 	end
 
-	@constraint(model, step/2 * sum(dir[i,1] + dir[i+1,1] for i in 1:N-1) == q2[1] - q1[1])
-	@constraint(model, step/2 * sum(dir[i,2] + dir[i+1,2] for i in 1:N-1) == q2[2] - q1[2])
+	@constraint(model, step/2*sum(dir[i,1]+dir[i+1,1] for i=1:N-1) == q2[1] - q1[1])
+	@constraint(model, step/2*sum(dir[i,2]+dir[i+1,2] for i=1:N-1) == q2[2] - q1[2])
 
 	for i in 1:N-1
-		# TODO: use trigonometric function considering step
+		# This constrains the angle between two directions in a row
 		@NLconstraint(model, sum(dir[i, j] * dir[i+1,j] for j in 1:2) >= 0.97)
 	end
 	
