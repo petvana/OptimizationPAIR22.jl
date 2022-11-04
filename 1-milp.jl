@@ -146,6 +146,8 @@ md"""
 We will replicate the example from
 
 [jump.dev/JuMP.jl/stable/tutorials/algorithms/tsp_lazy_constraints](https://jump.dev/JuMP.jl/stable/tutorials/algorithms/tsp_lazy_constraints/)
+
+To model the problem, we introduce a binary variable, $𝑥_{i,j} \in \{0,1\}∀𝑖,𝑗\in V$, that indicates if edge $(𝑖,𝑗)$ is part of the tour or not. Using these variables, the Traveling Salesperson Problem can be modeled as the following integer linear program.
 """
 
 # ╔═╡ 79d3df23-cda1-463c-8e66-04a95d064be1
@@ -226,7 +228,7 @@ let
 	    time_iterated += solve_time(iterative_model)
 	    cycle = subtour(iterative_model[:x])
 	end
-	
+	@show time_iterated
 	objective_value(iterative_model)
 	plot_tour(X, Y, value.(iterative_model[:x]))
 end
@@ -1274,7 +1276,7 @@ version = "1.4.1+0"
 # ╟─fa2929ea-dd00-4df4-af81-b416febef346
 # ╠═9ced5636-d045-444e-ae87-4a39ac1099cf
 # ╠═79d3df23-cda1-463c-8e66-04a95d064be1
-# ╠═5c83b4a8-7a5e-4381-8570-59f8be398ad5
+# ╟─5c83b4a8-7a5e-4381-8570-59f8be398ad5
 # ╠═0107a645-f7b9-46f3-aa28-d6a3a5f93782
 # ╠═3f3a80c4-50c5-4ac5-bde6-a726a6b36416
 # ╠═4a797039-3501-4edf-af83-af6552fe6160
