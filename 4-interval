@@ -30,6 +30,16 @@ x = 0.5..0.6
 # ╔═╡ 54c26009-0379-4297-b19a-4d4ab596cf09
 sin(x)
 
+# ╔═╡ 7686bc7f-beb0-44cc-b741-9ab793ca0c93
+let
+	a = 1..2
+	b = (1.2)..(2.3)
+	a ∪ b
+end
+
+# ╔═╡ db088590-38e3-4569-a848-d05e19cebf12
+@bind mince_steps html"<input type=range min=3 max=100 value=40 step=1>"
+
 # ╔═╡ 4f53eed0-e1fc-4f47-a60b-a05835f54a01
 let
 	f(x) = sin(x) + 0.1 * x^2
@@ -38,7 +48,7 @@ let
 	y = f.(x)
 	plot(x,y)
 	
-	xi = mince(0..2pi, 40)
+	xi = mince(0..2pi, mince_steps)
 	yi = f.(xi)
 	boxes = [IntervalBox(p) for p in zip(xi, yi)]
 	plot!(boxes, label = "Intervals")
@@ -59,18 +69,13 @@ pave_tolerance = pave_tolerance_sqrt^2
 
 # ╔═╡ 37521a9d-4ed5-4b05-b868-71542cd36880
 let
-	S = IntervalConstraintProgramming.@constraint 1 <= x^6 + y^2 + 1.5x <= 2
-	#S = IntervalConstraintProgramming.@constraint 1 <= x^2 + y^2 <= 3
+	S = @constraint 1 <= x^6 + y^2 + 1.5x <= 2
+	#S = @constraint 1 <= x^2 + y^2 <= 3
 	X = IntervalBox(-100..100, 2) # our starting box
 	paving = pave(S, X, pave_tolerance)
 	plot(paving.inner, c="green", aspect_ratio=:equal, label="inner")
 	plot!(paving.boundary, c="gray", label="boundary")
 end
-
-# ╔═╡ 38479048-510d-4d46-b71e-54bcbe57f1e5
-md"""
-https://opensourc.es/blog/mip-tsp/
-"""
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1146,11 +1151,12 @@ version = "1.4.1+0"
 # ╠═2d5ed4e6-f6f3-46a8-b5c2-25cf75fce4bf
 # ╠═494252a0-eedc-4f1b-9446-3fcac9c42211
 # ╠═54c26009-0379-4297-b19a-4d4ab596cf09
+# ╠═7686bc7f-beb0-44cc-b741-9ab793ca0c93
+# ╠═db088590-38e3-4569-a848-d05e19cebf12
 # ╠═4f53eed0-e1fc-4f47-a60b-a05835f54a01
 # ╟─e7d17f2f-b85a-4733-bec7-385a480802d8
 # ╠═1eb6b3ab-fe93-487c-a8c2-41b46067a57b
 # ╠═02639593-176b-45c5-8eaf-c6748e435ebf
 # ╠═37521a9d-4ed5-4b05-b868-71542cd36880
-# ╠═38479048-510d-4d46-b71e-54bcbe57f1e5
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

@@ -21,6 +21,3 @@ If you want to run Pluto notebooks, please start Pluto in Julia
 ``` julia
 using Pluto; Pluto.run()
 ```
-
-| WARNING: **The content of the notebooks is not yet final.** |
-| --- |

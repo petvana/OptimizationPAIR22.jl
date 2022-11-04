@@ -4,6 +4,16 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ 0ee8750d-d8a6-49b2-9627-6d0420bee6b1
 using Clarabel, JuMP, Plots
 
@@ -19,6 +29,15 @@ The problem stands to find the shortest path from point `A` to point `B` that in
 
 """
 
+# ╔═╡ d1dac8d2-276d-4828-a1e7-e981a6f07dc3
+@bind Cx html"<input type=range min=0 max=6 value=1 step=0.01>"
+
+# ╔═╡ da40fc85-1d37-4a74-8112-fe192117ac83
+@bind Cy html"<input type=range min=0 max=6 value=5 step=0.01>"
+
+# ╔═╡ 44a9fa60-6660-475a-b782-99be09c40333
+C = [Cx, Cy]
+
 # ╔═╡ 48320132-5b76-11ed-00e2-a73231c40ca6
 let
 	model = JuMP.Model(Clarabel.Optimizer)
@@ -30,7 +49,7 @@ let
 
 	# Target circle region C with radius
 	radius = 1.0
-	C = [1, 5]
+	# C = [1, 5] # It uses the global settings
 	
 	@variable(model, x[1:2]) # Visiting location at the target C
 	@variable(model, l[1:2]) # Squared lengths (l[1] from A to x; l[2] from x to B)
@@ -60,10 +79,14 @@ let
 	@show xval
 	plot()
 	plot!([xval[1]], [xval[2]], seriestype = :scatter, label = "x")
+	plot!([A[1]], [A[2]], seriestype = :scatter, label = "A")
+	plot!([B[1]], [B[2]], seriestype = :scatter, label = "B")
+	plot!([C[1]], [C[2]], seriestype = :scatter, label = "C")
 	plot_circle(C, radius)
 	plot_line(A, xval)
 	plot_line(B, xval)
-en
+	xlims!((-2, 6));	ylims!((0, 6));
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1182,8 +1205,11 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╠═ef04b988-7806-4615-85d8-fbc828580a14
+# ╟─ef04b988-7806-4615-85d8-fbc828580a14
 # ╠═0ee8750d-d8a6-49b2-9627-6d0420bee6b1
+# ╟─d1dac8d2-276d-4828-a1e7-e981a6f07dc3
+# ╟─da40fc85-1d37-4a74-8112-fe192117ac83
+# ╠═44a9fa60-6660-475a-b782-99be09c40333
 # ╠═48320132-5b76-11ed-00e2-a73231c40ca6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
